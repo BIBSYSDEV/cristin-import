@@ -64,7 +64,7 @@ Resources:
       Name: "orestis-cloudformation-api-test"
       StageName: Prod
       Auth:
-#        ApiKeyRequired: true
+        ApiKeyRequired: true
 #        UsagePlan:
 #          CreateUsagePlan: PER_API
 #          Quota:

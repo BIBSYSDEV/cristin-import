@@ -5,11 +5,17 @@ import no.unit.commons.apigateway.authentication.RequestAuthorizer;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.core.Environment;
 import nva.commons.secrets.SecretsReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RestAuthorizer extends RequestAuthorizer {
 
+
+    private static  final Logger logger = LoggerFactory.getLogger(RestAuthorizer.class);
     public RestAuthorizer(Environment environment) {
         super(environment);
+        logger.info("Rest Authorizer running");
+
     }
 
     @Override
