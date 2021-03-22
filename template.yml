@@ -64,14 +64,14 @@ Resources:
       Name: "orestis-cloudformation-api-test"
       StageName: Prod
       Auth:
-        ApiKeyRequired: true
-        UsagePlan:
-          CreateUsagePlan: PER_API
-          Quota:
-            Limit: 1000
-            Offset: 0
-            Period: DAY
-          UsagePlanName: orestis-s3-usage-plan
+#        ApiKeyRequired: true
+#        UsagePlan:
+#          CreateUsagePlan: PER_API
+#          Quota:
+#            Limit: 1000
+#            Offset: 0
+#            Period: DAY
+#          UsagePlanName: orestis-s3-usage-plan
 
 
       DefinitionBody:
