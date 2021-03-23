@@ -19,8 +19,6 @@ public class RestAuthorizer extends RequestAuthorizer {
 
     }
 
-
-
     @Override
     protected String principalId() throws ForbiddenException {
         return "cristinImport";
