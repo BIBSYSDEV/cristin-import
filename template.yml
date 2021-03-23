@@ -63,8 +63,16 @@ Resources:
     Properties:
       Name: "orestis-cloudformation-api-test"
       StageName: Prod
+      EndpointConfiguration: REGIONAL
       Auth:
-        ApiKeyRequired: true
+        Authorizers:
+          LambdaRequestAuthorizer:
+            FunctionArn: !GetAtt RestAuthorizer.Arn
+            FunctionPayloadType: REQUEST
+            Identity:
+              Headers:
+                - Authorization
+              ReauthorizeEvery: 3600
 #        UsagePlan:
 #          CreateUsagePlan: PER_API
 #          Quota:
