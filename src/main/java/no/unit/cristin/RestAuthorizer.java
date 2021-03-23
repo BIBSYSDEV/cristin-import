@@ -12,11 +12,14 @@ public class RestAuthorizer extends RequestAuthorizer {
 
 
     private static  final Logger logger = LoggerFactory.getLogger(RestAuthorizer.class);
-    public RestAuthorizer(Environment environment) {
-        super(environment);
+
+    public RestAuthorizer() {
+        super(new Environment());
         logger.info("Rest Authorizer running");
 
     }
+
+
 
     @Override
     protected String principalId() throws ForbiddenException {
