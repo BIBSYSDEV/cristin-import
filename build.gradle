@@ -155,8 +155,8 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git:git://github.com/BIBSYSDEV/nva-commons.git'
-                    developerConnection = 'scm:git:ssh://github.com/BIBSYSDEV/nva-commons.git'
+                    connection = 'scm:git:git://github.com/BIBSYSDEV/cristin-import.git'
+                    developerConnection = 'scm:git:ssh://github.com/BIBSYSDEV/cristin-import.git'
                     url = 'https://github.com/BIBSYSDEV/nva-commons/tree/main'
                 }
             }
