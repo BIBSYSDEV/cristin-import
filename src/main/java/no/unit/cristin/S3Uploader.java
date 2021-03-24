@@ -34,6 +34,7 @@ public class S3Uploader {
         return collectFailedInsertionIds(mapper);
     }
 
+    @JacocoGenerated
     private static S3Driver defaultS3Driver() {
         Environment environment = new Environment();
         String bucketName = environment.readEnv(S3_BUCKET);
