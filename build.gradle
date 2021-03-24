@@ -64,8 +64,6 @@ test {
         events 'skipped', 'passed', 'failed'
     }
     finalizedBy jacocoTestReport
-    environment("AWS_ACCESS_KEY_ID",System.getenv("ACCESS_KEY"))
-    environment("AWS_SECRET_ACCESS_KEY",System.getenv("SECRET_KEY"))
 }
 
 
