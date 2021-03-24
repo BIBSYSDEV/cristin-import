@@ -58,6 +58,13 @@ dependencies {
 
 }
 
+pmd {
+    ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
+    ruleSets = []
+    ignoreFailures = false
+}
+
+
 test {
     useJUnitPlatform()
     failFast = true
@@ -69,17 +76,18 @@ test {
     environment("AWS_SECRET_ACCESS_KEY",System.getenv("SECRET_KEY"))
 }
 
+
+build {
+    dependsOn jacocoRootReport
+}
+
 jacocoTestReport {
     reports {
         xml.enabled true
     }
 }
 
-pmd {
-    ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
-    ruleSets = []
-    ignoreFailures = false
-}
+
 
 checkstyle {
     configFile = rootProject.resources.text.fromFile('config/checkstyle/checkstyle.xml').asFile()
@@ -93,6 +101,8 @@ tasks.withType(Checkstyle) {
         html.stylesheet rootProject.resources.text.fromFile('config/checkstyle/checkstyle-simple.xsl')
     }
 }
+
+
 
 // jacoco configuration
 check.dependsOn jacocoTestCoverageVerification
@@ -122,6 +132,16 @@ gradleLint {
     rules  = ['all-dependency','duplicate-dependency-class']
 }
 
+
+// publish submodules
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
+}
 
 publishing {
     publications {
@@ -173,6 +193,75 @@ signing {
 }
 
 
+task jacocoMerge(type: JacocoMerge) {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = 'Merge the JaCoCo data files from all subprojects into one'
+    project.afterEvaluate {  // do it at the end of the config phase to be sure all information is present
+        FileCollection execFiles = project.objects.fileCollection()   // an empty FileCollection
+        getProjectList().each { Project subproject ->
+            if (subproject.pluginManager.hasPlugin('jacoco')) {
+                def testTasks = subproject.tasks.withType(Test)
+                dependsOn(testTasks)   // ensure that .exec files are actually present
+
+                testTasks.each { Test task ->
+                    // The JacocoTaskExtension is the source of truth for the location of the .exec file.
+                    JacocoTaskExtension extension = task.getExtensions().findByType(JacocoTaskExtension.class)
+                    if (extension != null) {
+                        execFiles.from extension.getDestinationFile()
+                    }
+                }
+            }
+        }
+        executionData = execFiles
+    }
+    doFirst {
+        // .exec files might be missing if a project has no tests. Filter in execution phase.
+        executionData = executionData.filter { it.canRead() }
+    }
+}
+
+
+
+task jacocoRootReport(type: JacocoReport, dependsOn: tasks.jacocoMerge) {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = 'Generates an aggregate report from all subprojects'
+
+    logger.lifecycle 'Using aggregated file: ' + tasks.jacocoMerge.destinationFile
+    executionData.from tasks.jacocoMerge.destinationFile
+
+    project.afterEvaluate {
+        // The JacocoReport tasks are the source of truth for class files and sources.
+        def reportTasks = getReportTasks(tasks.jacocoRootReport)
+        classDirectories.from project.files({
+            reportTasks.collect {it.classDirectories}.findAll {it != null}
+        })
+        sourceDirectories.from project.files({
+            reportTasks.collect {it.sourceDirectories}.findAll {it != null}
+        })
+    }
+
+    reports {
+        xml.enabled true
+    }
+}
+
+
+
+
+
+def getReportTasks(JacocoReport pRootTask) {
+    getProjectList().collect {
+        it.tasks.withType(JacocoReport).findAll { it != pRootTask }
+    }.flatten()
+}
+
+
+def getProjectList() {
+    // These projects are considered. Replace with a different list as needed.
+    subprojects + project
+}
+
+
 def gitBranch() {
     def branch = ""
     def proc = "git rev-parse --abbrev-ref HEAD".execute()
@@ -186,3 +275,6 @@ boolean isMainBranch() {
     def branch = gitBranch()
     return ((branch == "master" || branch == "main"))
 }
+
+
+
