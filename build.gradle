@@ -77,9 +77,6 @@ test {
 }
 
 
-build {
-    dependsOn jacocoRootReport
-}
 
 jacocoTestReport {
     reports {
@@ -276,5 +273,7 @@ boolean isMainBranch() {
     return ((branch == "master" || branch == "main"))
 }
 
-
+build {
+    dependsOn jacocoRootReport
+}
 
