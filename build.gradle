@@ -17,18 +17,18 @@ repositories {
     mavenCentral()
 }
 
-wrapper{
-    gradleVersion= "6.8"
+wrapper {
+    gradleVersion = "6.8"
 }
 
 group = 'com.github.bibsysdev'
 version = '0.1.1'
 
 
-project.ext{
-    nvaCommonsVersion = "1.5.4"
+project.ext {
+    nvaCommonsVersion = "1.5.5"
     awsSdkVersion = "1.11.979"
-    awsSkd2Version= "2.16.24"
+    awsSkd2Version = "2.16.24"
 }
 
 def jupiterVersion = "5.6.0"
@@ -38,11 +38,12 @@ dependencies {
     implementation group: 'com.github.bibsysdev', name: 'core', version: project.ext.nvaCommonsVersion
     implementation group: 'com.github.bibsysdev', name: 's3', version: project.ext.nvaCommonsVersion
 
-    compileOnly (group: 'software.amazon.awssdk', name: 's3', version: project.ext.awsSkd2Version){
+    compileOnly(group: 'software.amazon.awssdk', name: 's3', version: project.ext.awsSkd2Version) {
         because "PMD cannot find  software/amazon/awssdk/auth/credentials/AwsCredentialsProvider"
     }
 
     testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: jupiterVersion
+    testImplementation group: 'com.github.bibsysdev', name: 'identifiers', version: project.ext.nvaCommonsVersion
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: jupiterVersion
     testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.8.0'
@@ -58,14 +59,18 @@ pmd {
 
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform{
+        excludeTags("RemoteTest")
+    }
     failFast = true
     testLogging {
         events 'skipped', 'passed', 'failed'
     }
     finalizedBy jacocoTestReport
+    environment 'BUCKET', "cristin-import-884807050265"
+//    environment 'AWS_ACCESS_KEY_ID', System.getenv().get("ACCESS_KEY")
+//    environment 'AWS_SECRET_ACCESS_KEY', System.getenv().get("SECRET_KEY")
 }
-
 
 
 jacocoTestReport {
@@ -73,7 +78,6 @@ jacocoTestReport {
         xml.enabled true
     }
 }
-
 
 
 checkstyle {
@@ -88,7 +92,6 @@ tasks.withType(Checkstyle) {
         html.stylesheet rootProject.resources.text.fromFile('config/checkstyle/checkstyle-simple.xsl')
     }
 }
-
 
 
 // jacoco configuration
@@ -116,7 +119,7 @@ jacocoTestCoverageVerification {
 }
 
 gradleLint {
-    rules  = ['all-dependency','duplicate-dependency-class']
+    rules = ['all-dependency', 'duplicate-dependency-class']
 }
 
 
@@ -183,7 +186,8 @@ signing {
 task jacocoMerge(type: JacocoMerge) {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
     description = 'Merge the JaCoCo data files from all subprojects into one'
-    project.afterEvaluate {  // do it at the end of the config phase to be sure all information is present
+    project.afterEvaluate {
+        // do it at the end of the config phase to be sure all information is present
         FileCollection execFiles = project.objects.fileCollection()   // an empty FileCollection
         getProjectList().each { Project subproject ->
             if (subproject.pluginManager.hasPlugin('jacoco')) {
@@ -208,7 +212,6 @@ task jacocoMerge(type: JacocoMerge) {
 }
 
 
-
 task jacocoRootReport(type: JacocoReport, dependsOn: tasks.jacocoMerge) {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
     description = 'Generates an aggregate report from all subprojects'
@@ -220,10 +223,10 @@ task jacocoRootReport(type: JacocoReport, dependsOn: tasks.jacocoMerge) {
         // The JacocoReport tasks are the source of truth for class files and sources.
         def reportTasks = getReportTasks(tasks.jacocoRootReport)
         classDirectories.from project.files({
-            reportTasks.collect {it.classDirectories}.findAll {it != null}
+            reportTasks.collect { it.classDirectories }.findAll { it != null }
         })
         sourceDirectories.from project.files({
-            reportTasks.collect {it.sourceDirectories}.findAll {it != null}
+            reportTasks.collect { it.sourceDirectories }.findAll { it != null }
         })
     }
 
@@ -231,9 +234,6 @@ task jacocoRootReport(type: JacocoReport, dependsOn: tasks.jacocoMerge) {
         xml.enabled true
     }
 }
-
-
-
 
 
 def getReportTasks(JacocoReport pRootTask) {
