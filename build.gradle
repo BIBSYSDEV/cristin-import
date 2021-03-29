@@ -14,7 +14,9 @@ sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
 
 repositories {
+    mavenLocal()
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 wrapper {
@@ -26,7 +28,7 @@ version = '0.1.1'
 
 
 project.ext {
-    nvaCommonsVersion = "1.5.5"
+    nvaCommonsVersion = "2eec65c819b75044acb690b14d71d29f4e5558ee"
     awsSdkVersion = "1.11.979"
     awsSkd2Version = "2.16.24"
 }
@@ -34,20 +36,20 @@ project.ext {
 def jupiterVersion = "5.6.0"
 dependencies {
 
-
-    implementation group: 'com.github.bibsysdev', name: 'core', version: project.ext.nvaCommonsVersion
-    implementation group: 'com.github.bibsysdev', name: 's3', version: project.ext.nvaCommonsVersion
+    implementation group: 'com.github.BIBSYSDEV.nva-commons', name: 'core', version: project.ext.nvaCommonsVersion
+    implementation group: 'com.github.BIBSYSDEV.nva-commons', name: 's3', version: project.ext.nvaCommonsVersion
 
     compileOnly(group: 'software.amazon.awssdk', name: 's3', version: project.ext.awsSkd2Version) {
         because "PMD cannot find  software/amazon/awssdk/auth/credentials/AwsCredentialsProvider"
     }
 
     testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: jupiterVersion
-    testImplementation group: 'com.github.bibsysdev', name: 'identifiers', version: project.ext.nvaCommonsVersion
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: jupiterVersion
     testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.8.0'
     testImplementation group: 'com.github.javafaker', name: 'javafaker', version: '1.0.2'
+    testImplementation group: 'com.github.BIBSYSDEV.nva-commons', name: 'identifiers', version: project.ext.nvaCommonsVersion
+
 
 }
 
@@ -68,8 +70,6 @@ test {
     }
     finalizedBy jacocoTestReport
     environment 'BUCKET', "cristin-import-884807050265"
-//    environment 'AWS_ACCESS_KEY_ID', System.getenv().get("ACCESS_KEY")
-//    environment 'AWS_SECRET_ACCESS_KEY', System.getenv().get("SECRET_KEY")
 }
 
 
