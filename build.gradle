@@ -1,66 +1,86 @@
 plugins {
-    id 'java'
+    id 'java-library'
     id 'jacoco'
+    id 'base'
     id 'checkstyle'
     id 'pmd'
-    id "nebula.lint" version "16.9.0"
-
+    id 'nebula.lint' version '16.17.0'
+    id 'maven-publish'
+    id 'signing'
+    id 'io.github.gradle-nexus.publish-plugin' version '1.0.0'
 }
 
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
 
 repositories {
-    jcenter()
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
-wrapper{
-    gradleVersion= "6.8"
+wrapper {
+    gradleVersion = "6.8"
 }
 
+group = 'com.github.bibsysdev'
+version = '0.1.1'
 
-project.ext{
-    nvaCommonsVersion = "1.5.2"
-    awsSdkVersion ="1.11.979"
+
+project.ext {
+    nvaCommonsVersion = "7899c8fb7af504e8688a1c68db9521f3713eb6fa"
+    awsSdkVersion = "1.11.979"
+    awsSkd2Version = "2.16.24"
+    jacksonVersion = '2.12.0'
 }
 
 def jupiterVersion = "5.6.0"
 dependencies {
 
-
-    implementation group: 'com.github.bibsysdev', name: 'lambdaauthorizer', version: '1.5.2'
-    implementation group: 'com.github.bibsysdev', name: 'core', version: '1.5.2'
-    implementation group: 'com.github.bibsysdev', name: 'apigateway', version: '1.5.2'
-    implementation group: 'com.github.bibsysdev', name: 'secrets', version: '1.5.2'
+    implementation group: 'com.github.BIBSYSDEV.nva-commons', name: 'core', version: project.ext.nvaCommonsVersion
+    implementation group: 'com.github.BIBSYSDEV.nva-commons', name: 's3', version: project.ext.nvaCommonsVersion
 
 
-    implementation (group: 'com.amazonaws', name: 'aws-java-sdk-secretsmanager', version: project.ext.awsSdkVersion)
+
+    compileOnly(group: 'software.amazon.awssdk', name: 's3', version: project.ext.awsSkd2Version) {
+        because "PMD cannot find  software/amazon/awssdk/auth/credentials/AwsCredentialsProvider"
+    }
 
     testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: jupiterVersion
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: jupiterVersion
     testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
-
-}
-
-test {
-    useJUnitPlatform()
-    failFast = true
-    testLogging {
-        events 'skipped', 'passed', 'failed'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.8.0'
+    testImplementation group: 'com.github.javafaker', name: 'javafaker', version: '1.0.2'
+    testImplementation group: 'com.github.BIBSYSDEV.nva-commons', name: 'identifiers', version: project.ext.nvaCommonsVersion
+    testImplementation(group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: project.ext.jacksonVersion){
+        because "gradle linting"
     }
-    finalizedBy jacocoTestReport
-}
 
-jacocoTestReport {
-    reports {
-        xml.enabled true
-    }
+
 }
 
 pmd {
     ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
     ruleSets = []
     ignoreFailures = false
+}
+
+
+test {
+    useJUnitPlatform{
+        excludeTags("RemoteTest")
+    }
+    failFast = true
+    testLogging {
+        events 'skipped', 'passed', 'failed'
+    }
+    finalizedBy jacocoTestReport
+    environment 'BUCKET', "cristin-import-884807050265"
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+    }
 }
 
 checkstyle {
@@ -76,6 +96,7 @@ tasks.withType(Checkstyle) {
     }
 }
 
+
 // jacoco configuration
 check.dependsOn jacocoTestCoverageVerification
 jacocoTestCoverageVerification.dependsOn(jacocoTestReport)
@@ -86,7 +107,7 @@ jacocoTestCoverageVerification {
             limit {
                 counter = 'METHOD'
                 value = 'COVEREDRATIO'
-                minimum = 0.00
+                minimum = 1.000
             }
         }
 
@@ -94,12 +115,158 @@ jacocoTestCoverageVerification {
             limit {
                 counter = 'CLASS'
                 value = 'COVEREDRATIO'
-                minimum = 0.00
+                minimum = 1.000
             }
         }
     }
 }
 
 gradleLint {
-    rules  = ['all-dependency','duplicate-dependency-class']
+    rules = ['all-dependency', 'duplicate-dependency-class']
 }
+
+
+// publish submodules
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = project.name
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+            pom {
+                name = project.name
+                description = 'A commons library for the NVA project'
+                url = 'https://github.com/BIBSYSDEV/nva-commons'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'http://www.opensource.org/licenses/mit-license.php'
+                    }
+                }
+                developers {
+                    developer {
+                        name = 'Mattias Håheim Johnsen'
+                        email = 'mattias.haheim.johnsen@unit.no'
+                        organization = 'UNIT'
+                        organizationUrl = 'https://www.unit.no/'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/BIBSYSDEV/cristin-import.git'
+                    developerConnection = 'scm:git:ssh://github.com/BIBSYSDEV/cristin-import.git'
+                    url = 'https://github.com/BIBSYSDEV/nva-commons/tree/main'
+                }
+            }
+        }
+    }
+}
+
+signing {
+    if (isMainBranch()) {
+        useInMemoryPgpKeys(findProperty("signingKey"), findProperty("signingPassword"))
+        sign publishing.publications.mavenJava
+    }
+
+}
+
+
+task jacocoMerge(type: JacocoMerge) {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = 'Merge the JaCoCo data files from all subprojects into one'
+    project.afterEvaluate {
+        // do it at the end of the config phase to be sure all information is present
+        FileCollection execFiles = project.objects.fileCollection()   // an empty FileCollection
+        getProjectList().each { Project subproject ->
+            if (subproject.pluginManager.hasPlugin('jacoco')) {
+                def testTasks = subproject.tasks.withType(Test)
+                dependsOn(testTasks)   // ensure that .exec files are actually present
+
+                testTasks.each { Test task ->
+                    // The JacocoTaskExtension is the source of truth for the location of the .exec file.
+                    JacocoTaskExtension extension = task.getExtensions().findByType(JacocoTaskExtension.class)
+                    if (extension != null) {
+                        execFiles.from extension.getDestinationFile()
+                    }
+                }
+            }
+        }
+        executionData = execFiles
+    }
+    doFirst {
+        // .exec files might be missing if a project has no tests. Filter in execution phase.
+        executionData = executionData.filter { it.canRead() }
+    }
+}
+
+
+task jacocoRootReport(type: JacocoReport, dependsOn: tasks.jacocoMerge) {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = 'Generates an aggregate report from all subprojects'
+
+    logger.lifecycle 'Using aggregated file: ' + tasks.jacocoMerge.destinationFile
+    executionData.from tasks.jacocoMerge.destinationFile
+
+    project.afterEvaluate {
+        // The JacocoReport tasks are the source of truth for class files and sources.
+        def reportTasks = getReportTasks(tasks.jacocoRootReport)
+        classDirectories.from project.files({
+            reportTasks.collect { it.classDirectories }.findAll { it != null }
+        })
+        sourceDirectories.from project.files({
+            reportTasks.collect { it.sourceDirectories }.findAll { it != null }
+        })
+    }
+
+    reports {
+        xml.enabled true
+    }
+}
+
+
+def getReportTasks(JacocoReport pRootTask) {
+    getProjectList().collect {
+        it.tasks.withType(JacocoReport).findAll { it != pRootTask }
+    }.flatten()
+}
+
+
+def getProjectList() {
+    // These projects are considered. Replace with a different list as needed.
+    subprojects + project
+}
+
+
+def gitBranch() {
+    def branch = ""
+    def proc = "git rev-parse --abbrev-ref HEAD".execute()
+    proc.in.eachLine { line -> branch = line }
+    proc.err.eachLine { line -> println line }
+    proc.waitFor()
+    branch
+}
+
+boolean isMainBranch() {
+    def branch = gitBranch()
+    return ((branch == "master" || branch == "main"))
+}
+
+build {
+    dependsOn jacocoRootReport
+}
+
