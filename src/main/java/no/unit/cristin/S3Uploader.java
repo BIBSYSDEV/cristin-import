@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 import java.util.stream.Collectors;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.Environment;

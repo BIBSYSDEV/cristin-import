@@ -31,6 +31,7 @@ project.ext {
     nvaCommonsVersion = "2eec65c819b75044acb690b14d71d29f4e5558ee"
     awsSdkVersion = "1.11.979"
     awsSkd2Version = "2.16.24"
+    jacksonVersion = '2.12.0'
 }
 
 def jupiterVersion = "5.6.0"
@@ -38,6 +39,8 @@ dependencies {
 
     implementation group: 'com.github.BIBSYSDEV.nva-commons', name: 'core', version: project.ext.nvaCommonsVersion
     implementation group: 'com.github.BIBSYSDEV.nva-commons', name: 's3', version: project.ext.nvaCommonsVersion
+
+
 
     compileOnly(group: 'software.amazon.awssdk', name: 's3', version: project.ext.awsSkd2Version) {
         because "PMD cannot find  software/amazon/awssdk/auth/credentials/AwsCredentialsProvider"
@@ -49,6 +52,9 @@ dependencies {
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.8.0'
     testImplementation group: 'com.github.javafaker', name: 'javafaker', version: '1.0.2'
     testImplementation group: 'com.github.BIBSYSDEV.nva-commons', name: 'identifiers', version: project.ext.nvaCommonsVersion
+    testImplementation(group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: project.ext.jacksonVersion){
+        because "gradle linting"
+    }
 
 
 }
@@ -72,13 +78,11 @@ test {
     environment 'BUCKET', "cristin-import-884807050265"
 }
 
-
 jacocoTestReport {
     reports {
         xml.enabled true
     }
 }
-
 
 checkstyle {
     configFile = rootProject.resources.text.fromFile('config/checkstyle/checkstyle.xml').asFile()
