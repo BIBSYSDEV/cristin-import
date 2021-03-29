@@ -61,7 +61,7 @@ class S3UploaderTest {
 
         uploader.uploadFiles(entries);
         int numberOfExpectedCalls = entries.size() / DEFAULT_BATCH_SIZE;
-        verify(s3Driver, times(numberOfExpectedCalls)).insertFiles(any(List.class));
+        verify(s3Driver, times(numberOfExpectedCalls)).insertAndCompressFiles(any(List.class));
     }
 
     @Test
@@ -85,7 +85,7 @@ class S3UploaderTest {
 
     private void s3DriverThrowsExceptions() throws IOException {
         s3Driver = mock(S3Driver.class);
-        doThrow(IOException.class).when(s3Driver).insertFiles(any(List.class));
+        doThrow(IOException.class).when(s3Driver).insertAndCompressFiles(any(List.class));
     }
 
     private List<KeyValue> createSampleEntries(int size) {

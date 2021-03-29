@@ -14,7 +14,6 @@ sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
 
 repositories {
-    mavenLocal()
     mavenCentral()
     maven { url 'https://jitpack.io' }
 }
@@ -28,7 +27,7 @@ version = '0.1.1'
 
 
 project.ext {
-    nvaCommonsVersion = "2eec65c819b75044acb690b14d71d29f4e5558ee"
+    nvaCommonsVersion = "7899c8fb7af504e8688a1c68db9521f3713eb6fa"
     awsSdkVersion = "1.11.979"
     awsSkd2Version = "2.16.24"
     jacksonVersion = '2.12.0'

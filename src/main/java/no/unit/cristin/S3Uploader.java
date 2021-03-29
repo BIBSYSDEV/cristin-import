@@ -54,7 +54,7 @@ public class S3Uploader {
 
     private ParallelMapper<List<KeyValue>, Void> processGroups(Collection<List<KeyValue>> groups)
         throws InterruptedException {
-        return new ParallelMapper<>(groups, this::insertGroup).run();
+        return new ParallelMapper<>(groups, this::insertGroup).map();
     }
 
     private List<KeyValue> failedEntries(ParallelMapper<List<KeyValue>, Void> mapper) {
@@ -70,7 +70,7 @@ public class S3Uploader {
     private Void insertGroup(List<KeyValue> group) {
         try {
             List<String> values = group.stream().map(KeyValue::getValue).collect(Collectors.toList());
-            s3Driver.insertFiles(values);
+            s3Driver.insertAndCompressFiles(values);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
