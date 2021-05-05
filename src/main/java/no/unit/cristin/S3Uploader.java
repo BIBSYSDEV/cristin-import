@@ -2,6 +2,7 @@ package no.unit.cristin;
 
 import static nva.commons.core.attempt.Try.attempt;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -22,14 +23,16 @@ public class S3Uploader {
     public static final String S3_BUCKET = "BUCKET";
     public static final int DEFAULT_BATCH_SIZE = 100;
     private final S3Driver s3Driver;
+    private Path pathInBucket;
 
     @JacocoGenerated
-    public S3Uploader() {
-        this(defaultS3Driver());
+    public S3Uploader(Path pathInBucket) {
+        this(defaultS3Driver(),pathInBucket);
     }
 
-    public S3Uploader(S3Driver s3Driver) {
+    public S3Uploader(S3Driver s3Driver, Path pathInBucket) {
         this.s3Driver = s3Driver;
+        this.pathInBucket = pathInBucket;
     }
 
     public List<KeyValue> uploadFiles(List<KeyValue> entries) {
@@ -70,7 +73,7 @@ public class S3Uploader {
     private Void insertGroup(List<KeyValue> group) {
         try {
             List<String> values = group.stream().map(KeyValue::getValue).collect(Collectors.toList());
-            s3Driver.insertAndCompressFiles(values);
+            s3Driver.insertAndCompressFiles(pathInBucket,values);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
