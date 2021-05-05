@@ -23,11 +23,11 @@ wrapper {
 }
 
 group = 'com.github.bibsysdev'
-version = '0.1.1'
+version = '0.1.2'
 
 
 project.ext {
-    nvaCommonsVersion = "7899c8fb7af504e8688a1c68db9521f3713eb6fa"
+    nvaCommonsVersion = "1.5.16"
     awsSdkVersion = "1.11.979"
     awsSkd2Version = "2.16.24"
     jacksonVersion = '2.12.0'
@@ -36,8 +36,8 @@ project.ext {
 def jupiterVersion = "5.6.0"
 dependencies {
 
-    implementation group: 'com.github.BIBSYSDEV.nva-commons', name: 'core', version: project.ext.nvaCommonsVersion
-    implementation group: 'com.github.BIBSYSDEV.nva-commons', name: 's3', version: project.ext.nvaCommonsVersion
+    implementation group: 'com.github.bibsysdev', name: 'core', version: project.ext.nvaCommonsVersion
+    implementation group: 'com.github.bibsysdev', name: 's3', version: project.ext.nvaCommonsVersion
 
 
 
@@ -50,7 +50,7 @@ dependencies {
     testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.8.0'
     testImplementation group: 'com.github.javafaker', name: 'javafaker', version: '1.0.2'
-    testImplementation group: 'com.github.BIBSYSDEV.nva-commons', name: 'identifiers', version: project.ext.nvaCommonsVersion
+    testImplementation group: 'com.github.bibsysdev', name: 'identifiers', version: project.ext.nvaCommonsVersion
     testImplementation(group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: project.ext.jacksonVersion){
         because "gradle linting"
     }

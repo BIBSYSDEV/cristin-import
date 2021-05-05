@@ -14,6 +14,7 @@ import static org.mockito.Mockito.verify;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.javafaker.Faker;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -31,20 +32,21 @@ class S3UploaderTest {
     public static final Faker FAKER = Faker.instance();
     public static final String JSON_EXTENSION = ".json";
     private static final int MAX_ITERATIONS = 1;
+    public static final Path SOME_FOLDER_PATH = Path.of("some", "path");
     private S3Driver s3Driver;
     private S3Uploader uploader;
 
     @BeforeEach
     public void init() {
         s3Driver = mock(S3Driver.class);
-        uploader = new S3Uploader(s3Driver);
+        uploader = new S3Uploader(s3Driver, SOME_FOLDER_PATH);
     }
 
     @Test
     @Tag("RemoteTest")
     public void s3DriverWritesEntriesInS3Bucket() {
         List<KeyValue> entries = createSampleEntries(10);
-        S3Uploader s3Uploader = new S3Uploader();
+        S3Uploader s3Uploader = new S3Uploader(SOME_FOLDER_PATH);
 
         List<KeyValue> failedItems = s3Uploader.uploadFiles(entries);
         for (int i = 0; i < MAX_ITERATIONS; i++) {
@@ -61,14 +63,14 @@ class S3UploaderTest {
 
         uploader.uploadFiles(entries);
         int numberOfExpectedCalls = entries.size() / DEFAULT_BATCH_SIZE;
-        verify(s3Driver, times(numberOfExpectedCalls)).insertAndCompressFiles(any(List.class));
+        verify(s3Driver, times(numberOfExpectedCalls)).insertAndCompressFiles(any(Path.class),any(List.class));
     }
 
     @Test
     public void insertEntriesReturnsListWithIdsOfFailedInsertions() throws IOException {
         List<KeyValue> entries = sampleEntries(this::randomContent);
         s3DriverThrowsExceptions();
-        uploader = new S3Uploader(s3Driver);
+        uploader = new S3Uploader(s3Driver,SOME_FOLDER_PATH);
 
         List<String> failedIds = uploader.uploadFiles(entries)
                                      .stream()
@@ -85,7 +87,7 @@ class S3UploaderTest {
 
     private void s3DriverThrowsExceptions() throws IOException {
         s3Driver = mock(S3Driver.class);
-        doThrow(IOException.class).when(s3Driver).insertAndCompressFiles(any(List.class));
+        doThrow(IOException.class).when(s3Driver).insertAndCompressFiles(any(Path.class),any(List.class));
     }
 
     private List<KeyValue> createSampleEntries(int size) {
