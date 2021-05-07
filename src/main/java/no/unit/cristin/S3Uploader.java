@@ -23,16 +23,16 @@ public class S3Uploader {
     public static final String S3_BUCKET = "BUCKET";
     public static final int DEFAULT_BATCH_SIZE = 100;
     private final S3Driver s3Driver;
-    private Path pathInBucket;
+    private final Path folderPath;
 
     @JacocoGenerated
-    public S3Uploader(Path pathInBucket) {
-        this(defaultS3Driver(),pathInBucket);
+    public S3Uploader(Path folderPath) {
+        this(defaultS3Driver(),folderPath);
     }
 
     public S3Uploader(S3Driver s3Driver, Path pathInBucket) {
         this.s3Driver = s3Driver;
-        this.pathInBucket = pathInBucket;
+        this.folderPath = pathInBucket;
     }
 
     public List<KeyValue> uploadFiles(List<KeyValue> entries) {
@@ -73,7 +73,7 @@ public class S3Uploader {
     private Void insertGroup(List<KeyValue> group) {
         try {
             List<String> values = group.stream().map(KeyValue::getValue).collect(Collectors.toList());
-            s3Driver.insertAndCompressFiles(pathInBucket,values);
+            s3Driver.insertAndCompressFiles(folderPath, values);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
